@@ -317,7 +317,7 @@ public class ModelResolver extends AbstractModelConverter implements ModelConver
                     model = primitiveType.createProperty();
                     isPrimitive = true;
                 }
-            } 
+            }
 
             if (model == null) {
                 PrimitiveType primitiveType = PrimitiveType.fromType(type);
@@ -647,8 +647,8 @@ public class ModelResolver extends AbstractModelConverter implements ModelConver
                         propType = ((AnnotatedMethod)member).getParameterType(0);
                     }
 
-                } 
-                
+                }
+
                 String propSchemaName = null;
                 io.swagger.v3.oas.annotations.media.Schema ctxSchema = AnnotationsUtils.getSchemaAnnotation(annotations);
                 if (AnnotationsUtils.hasSchemaAnnotation(ctxSchema)) {
@@ -1993,6 +1993,18 @@ public class ModelResolver extends AbstractModelConverter implements ModelConver
         return null;
     }
 
+    protected Boolean resolveNullValues(Annotated a, Annotation[] annotations, io.swagger.v3.oas.annotations.media.Schema schema) {
+        if (schema != null) {
+            for (String nullValue : schema.nullValues()) {
+                if (nullValue.equals(schema.example())) {
+                  return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     protected io.swagger.v3.oas.annotations.media.Schema.RequiredMode resolveRequiredMode(io.swagger.v3.oas.annotations.media.Schema schema) {
         if (schema != null && !schema.requiredMode().equals(io.swagger.v3.oas.annotations.media.Schema.RequiredMode.AUTO)) {
             return schema.requiredMode();
@@ -2758,6 +2770,10 @@ public class ModelResolver extends AbstractModelConverter implements ModelConver
         Object example = resolveExample(a, annotations, schemaAnnotation);
         if (example != null) {
             schema.example(example);
+        }
+        Boolean nullValue = resolveNullValues(a, annotations, schemaAnnotation);
+        if (nullValue) {
+          schema.example(null);
         }
         Boolean readOnly = resolveReadOnly(a, annotations, schemaAnnotation);
         if (readOnly != null) {
